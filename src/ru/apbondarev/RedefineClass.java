@@ -12,6 +12,9 @@ import java.nio.charset.StandardCharsets;
 
 import com.sun.jdi.connect.TransportTimeoutException;
 
+/**
+ * https://docs.oracle.com/javase/8/docs/platform/jpda/jdwp/jdwp-protocol.html#JDWP_VirtualMachine_RedefineClasses
+ */
 public class RedefineClass implements Closeable {
 
     static final long DEFAULT_TIMEOUT = 5000L;
