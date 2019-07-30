@@ -14,7 +14,7 @@ import com.sun.jdi.connect.TransportTimeoutException;
 
 public class RedefineClass implements Closeable {
 
-    private static final long DEFAULT_TIMEOUT = 5000L;
+    static final long DEFAULT_TIMEOUT = 5000L;
 
     private Socket socket;
     private boolean closed;
@@ -123,9 +123,15 @@ public class RedefineClass implements Closeable {
     @Override
     public void close() throws IOException {
         if (!closed) {
-            socketOutput.close();
-            socketInput.close();
-            socket.close();
+            if (socketOutput != null) {
+                socketOutput.close();
+            }
+            if (socketInput != null) {
+                socketInput.close();
+            }
+            if (socket != null) {
+                socket.close();
+            }
             closed = true;
         }
     }
