@@ -11,9 +11,12 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import com.sun.jdi.connect.TransportTimeoutException;
 
@@ -28,7 +31,14 @@ public class RedefineClass implements Closeable {
     private boolean closed;
     private DataOutputStream socketOutput;
     private DataInputStream socketInput;
-    private int id;
+    private Supplier<Integer> idCounter = new Supplier<>() {
+        private int id;
+        @Override
+        public Integer get() {
+            id++;
+            return id;
+        }
+    };
 
     public static void main(String[] args) {
         System.out.print("connecting to " + args[0] + " ...");
@@ -126,27 +136,39 @@ public class RedefineClass implements Closeable {
     }
 
     public void redefine(String className, byte[] data) throws IOException {
-        Map<Integer, ClassesBySignatureCommand> findClassCommands = new HashMap<>();
+        IDSizesCommand idSizesCommand = new IDSizesCommand(idCounter);
+        executeCommands(Collections.singletonList(idSizesCommand));
+        SizesInfo sizeInfo = idSizesCommand.getSizesInfo();
+
+        List<ClassesBySignatureCommand> findClassCommands = new ArrayList<>();
         for (String it : Collections.singletonList(className)) {
-            id++;
-            ClassesBySignatureCommand cmd = new ClassesBySignatureCommand(id, it);
+            ClassesBySignatureCommand cmd = new ClassesBySignatureCommand(idCounter, it, sizeInfo);
+            findClassCommands.add(cmd);
+        }
+        executeCommands(findClassCommands);
+
+        Map<String, Long> classToReferenceId = new HashMap<>();
+        for (ClassesBySignatureCommand cmd : findClassCommands) {
+            long referenceTypeID = cmd.getResult().get(0).getTypeID();
+            classToReferenceId.put(cmd.getClassName(), referenceTypeID);
+            System.out.println("class: " + cmd.getClassName() + ", id: " + referenceTypeID);
+        }
+    }
+
+    private void executeCommands(List<? extends Command> commands) throws IOException {
+        Map<Integer, Command> itTocommands = new HashMap<>();
+        for (Command cmd : commands) {
             cmd.writeCommand(socketOutput);
-            findClassCommands.put(id, cmd);
+            itTocommands.put(cmd.getId(), cmd);
         }
-
-        Map<String, Integer> classToReferenceId = new HashMap<>();
-        while (!findClassCommands.isEmpty()) {
+        socketOutput.flush();
+        while (!itTocommands.isEmpty()) {
             ReplyHeader reply = HeaderUtils.read(socketInput);
-            if (findClassCommands.containsKey(reply.getId())) {
-                ClassesBySignatureCommand cmd = findClassCommands.get(reply.getId());
-                findClassCommands.remove(reply.getId());
+            if (itTocommands.containsKey(reply.getId())) {
+                Command cmd = itTocommands.get(reply.getId());
+                itTocommands.remove(reply.getId());
                 cmd.readReplyData(reply.getDataLength(), socketInput);
-                classToReferenceId.put(cmd.getClassName(), cmd.getResult().get(0).getTypeID());
             }
-        }
-
-        for (Map.Entry<String, Integer> it : classToReferenceId.entrySet()) {
-            System.out.println("class: " + it.getKey() + ", id: " + it.getValue());
         }
     }
 
