@@ -17,7 +17,7 @@ public class IDSizesCommand extends Command {
 
     @Override
     public void writeCommand(DataOutputStream stream) throws IOException {
-        HeaderUtils.write(stream, getId(), HEADER_LENGTH, COMMAND_SET, COMMAND_ID);
+        writeHeader(stream, HEADER_LENGTH, COMMAND_SET, COMMAND_ID);
     }
 
     @Override

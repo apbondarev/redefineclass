@@ -20,6 +20,22 @@ public abstract class Command {
         return id;
     }
 
+    protected void writeHeader(DataOutputStream stream, int length, byte commandSet, byte command) throws IOException {
+        stream.writeInt(length);
+        stream.writeInt(id);
+        stream.writeByte(0);
+        stream.writeByte(commandSet);
+        stream.writeByte(command);
+    }
+
+    public static ReplyHeader readHeader(DataInputStream stream) throws IOException {
+        int length = stream.readInt();
+        int commandId = stream.readInt();
+        byte flags = stream.readByte();
+        short errorCode = stream.readShort();
+        return new ReplyHeader(length - HEADER_LENGTH, commandId, flags, errorCode);
+    }
+
     public abstract void writeCommand(DataOutputStream stream) throws IOException;
 
     public abstract void readReplyData(int dataLength, DataInputStream stream) throws IOException;

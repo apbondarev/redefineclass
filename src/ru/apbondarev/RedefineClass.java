@@ -163,7 +163,7 @@ public class RedefineClass implements Closeable {
         }
         socketOutput.flush();
         while (!itTocommands.isEmpty()) {
-            ReplyHeader reply = HeaderUtils.read(socketInput);
+            ReplyHeader reply = Command.readHeader(socketInput);
             if (itTocommands.containsKey(reply.getId())) {
                 Command cmd = itTocommands.get(reply.getId());
                 itTocommands.remove(reply.getId());

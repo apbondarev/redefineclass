@@ -55,7 +55,7 @@ public class ClassesBySignatureCommand extends Command {
     public void writeCommand(DataOutputStream stream) throws IOException {
         byte[] bytes = signature.getBytes(StandardCharsets.UTF_8);
         int length = HEADER_LENGTH + INTEGER_LENGTH + bytes.length;
-        HeaderUtils.write(stream, getId(), length, COMMAND_SET, COMMAND_ID);
+        writeHeader(stream, length, COMMAND_SET, COMMAND_ID);
         stream.writeInt(signature.length());
         stream.write(bytes);
     }
