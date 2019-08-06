@@ -23,7 +23,7 @@ public class IDSizesCommand extends Command {
     @Override
     public void readReplyData(int dataLength, DataInputStream stream) throws IOException {
         if (dataLength != 5 * INTEGER_LENGTH) {
-            throw new IllegalArgumentException(String.valueOf(dataLength));
+            throw new IllegalArgumentException("protocol error: " + dataLength);
         }
         int fieldIDSize = stream.readInt();
         int methodIDSize = stream.readInt();

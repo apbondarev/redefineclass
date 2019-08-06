@@ -6,6 +6,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,11 +34,19 @@ public class Main {
             driver.attach(address, RedefineClass.DEFAULT_TIMEOUT, RedefineClass.DEFAULT_TIMEOUT);
             System.out.println(" connected");
 
+            Map<String, byte[]> classToBytes = new LinkedHashMap<>();
             for (Map.Entry<String, URI> it : compiledClasses.entrySet()) {
                 String className = it.getKey();
                 URI uri = it.getValue();
-                driver.redefine(className, Files.readAllBytes(Path.of(uri)));
-                System.out.println("hot swapped: " + className);
+                classToBytes.put(className, Files.readAllBytes(Path.of(uri)));
+                System.out.println("read file " + Path.of(uri));
+            }
+
+            if (!classToBytes.isEmpty()) {
+                driver.redefine(classToBytes);
+                for (String className : classToBytes.keySet()) {
+                    System.out.println("hot swapped: " + className);
+                }
             }
         } catch (IOException e) {
             System.out.println();

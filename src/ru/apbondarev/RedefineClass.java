@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -135,24 +136,35 @@ public class RedefineClass implements Closeable {
         socketOutput = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
     }
 
-    public void redefine(String className, byte[] data) throws IOException {
+    public void redefine(Map<String, byte[]> classBytes) throws IOException {
+        // IDSizes
         IDSizesCommand idSizesCommand = new IDSizesCommand(idCounter);
         executeCommands(Collections.singletonList(idSizesCommand));
         SizesInfo sizeInfo = idSizesCommand.getSizesInfo();
 
+        // ClassesBySignature
         List<ClassesBySignatureCommand> findClassCommands = new ArrayList<>();
-        for (String it : Collections.singletonList(className)) {
-            ClassesBySignatureCommand cmd = new ClassesBySignatureCommand(idCounter, it, sizeInfo);
+        for (String className : classBytes.keySet()) {
+            ClassesBySignatureCommand cmd = new ClassesBySignatureCommand(idCounter, className, sizeInfo);
             findClassCommands.add(cmd);
         }
         executeCommands(findClassCommands);
-
         Map<String, Long> classToReferenceId = new HashMap<>();
         for (ClassesBySignatureCommand cmd : findClassCommands) {
             long referenceTypeID = cmd.getResult().get(0).getTypeID();
             classToReferenceId.put(cmd.getClassName(), referenceTypeID);
             System.out.println("class: " + cmd.getClassName() + ", id: " + referenceTypeID);
         }
+
+        // RedefineClasses
+        Map<Long, byte[]> classes = new LinkedHashMap<>();
+        for (Map.Entry<String, byte[]> entry : classBytes.entrySet()) {
+            String className = entry.getKey();
+            byte[] bytes = entry.getValue();
+            classes.put(classToReferenceId.get(className), bytes);
+        }
+        List<RedefineClassesCommand> redefineClassesCommands = Collections.singletonList(new RedefineClassesCommand(idCounter, sizeInfo, classes));
+        executeCommands(redefineClassesCommands);
     }
 
     private void executeCommands(List<? extends Command> commands) throws IOException {

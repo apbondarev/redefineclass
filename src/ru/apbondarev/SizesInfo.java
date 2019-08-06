@@ -1,5 +1,8 @@
 package ru.apbondarev;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 public class SizesInfo {
     private final int fieldIDSize;
     private final int methodIDSize;
@@ -33,5 +36,15 @@ public class SizesInfo {
 
     public int getFrameIDSize() {
         return frameIDSize;
+    }
+
+    public void writeReferenceTypeID(long value, DataOutputStream stream) throws IOException {
+        if (referenceTypeIDSize == Command.INTEGER_LENGTH) {
+            stream.writeInt((int) value);
+        } else if (referenceTypeIDSize == Command.LONG_LENGTH) {
+            stream.writeLong(value);
+        } else {
+            throw new IllegalStateException("unexpected ReferenceTypeIDSize=" + referenceTypeIDSize);
+        }
     }
 }

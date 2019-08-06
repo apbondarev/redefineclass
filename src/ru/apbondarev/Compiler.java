@@ -44,6 +44,8 @@ public class Compiler {
 
     public Map<String, URI> compile(File file, List<String> options) {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        System.out.println("compiler source versions: " + compiler.getSourceVersions());
+        System.out.println("VM options: " + options);
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
         Map<String, URI> output = new LinkedHashMap<>();
         try (StandardJavaFileManager stdFileManager = compiler.getStandardFileManager(diagnostics, null, null)) {
