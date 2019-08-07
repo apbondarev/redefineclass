@@ -13,6 +13,19 @@ import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) {
+        if (args.length < 2) {
+            System.err.println(
+                    "Compile and redefine java class via debugger protocol.\n" +
+                    "https://docs.oracle.com/javase/8/docs/platform/jpda/jdwp/jdwp-protocol.html#JDWP_VirtualMachine_RedefineClasses\n" +
+                    "Usage:\n" +
+                    "\tjava -jar redefine.jar hostname:port javafile [compiler arguments]\n" +
+                    "Example:\n" +
+                    "\tjava -jar redefine.jar 127.0.0.1:50010 SampleApp.java -source 12 -target 12 -classpath ..."
+            );
+            System.exit(1);
+            return;
+        }
+
         String address = args[0];
         File file = Path.of(args[1]).toFile();
         List<String> options;
