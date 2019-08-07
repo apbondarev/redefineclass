@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,7 +27,7 @@ public class Main {
         }
 
         String address = args[0];
-        File file = Path.of(args[1]).toFile();
+        File file = Paths.get(args[1]).toFile();
         List<String> options;
         if (args.length > 1) {
             options = Arrays.stream(args, 2, args.length).collect(Collectors.toList());
@@ -51,8 +51,8 @@ public class Main {
             for (Map.Entry<String, URI> it : compiledClasses.entrySet()) {
                 String className = it.getKey();
                 URI uri = it.getValue();
-                classToBytes.put(className, Files.readAllBytes(Path.of(uri)));
-                System.out.println("read file " + Path.of(uri));
+                classToBytes.put(className, Files.readAllBytes(Paths.get(uri)));
+                System.out.println("read file " + Paths.get(uri));
             }
 
             if (!classToBytes.isEmpty()) {

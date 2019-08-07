@@ -19,8 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import com.sun.jdi.connect.TransportTimeoutException;
-
 /**
  * https://docs.oracle.com/javase/8/docs/platform/jpda/jdwp/jdwp-protocol.html#JDWP_VirtualMachine_RedefineClasses
  */
@@ -32,7 +30,7 @@ public class RedefineClass implements Closeable {
     private boolean closed;
     private DataOutputStream socketOutput;
     private DataInputStream socketInput;
-    private Supplier<Integer> idCounter = new Supplier<>() {
+    private Supplier<Integer> idCounter = new Supplier<Integer>() {
         private int id;
         @Override
         public Integer get() {
@@ -71,7 +69,7 @@ public class RedefineClass implements Closeable {
             int port;
             try {
                 port = Integer.parseInt(portStr);
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException ignored) {
                 throw new IllegalArgumentException("unable to parse port number in address");
             }
 
@@ -85,7 +83,7 @@ public class RedefineClass implements Closeable {
                     socket.close();
                 } catch (IOException ignored) {
                 }
-                throw new TransportTimeoutException("timed out trying to establish connection");
+                throw new IllegalStateException("timed out trying to establish connection");
             }
 
             try {

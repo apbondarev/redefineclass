@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -25,7 +25,7 @@ import javax.tools.ToolProvider;
 public class Compiler {
 
     public static void main(String[] args) {
-        File file = Path.of(args[0]).toFile();
+        File file = Paths.get(args[0]).toFile();
 
         List<String> options;
         if (args.length > 1) {
@@ -49,7 +49,7 @@ public class Compiler {
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
         Map<String, URI> output = new LinkedHashMap<>();
         try (StandardJavaFileManager stdFileManager = compiler.getStandardFileManager(diagnostics, null, null)) {
-            JavaFileManager fileManager = new ForwardingJavaFileManager<>(stdFileManager) {
+            JavaFileManager fileManager = new ForwardingJavaFileManager<JavaFileManager>(stdFileManager) {
                 @Override
                 public JavaFileObject getJavaFileForOutput(Location location, String className, JavaFileObject.Kind kind, FileObject sibling) throws IOException {
                     JavaFileObject javaFileObject = super.getJavaFileForOutput(location, className, kind, sibling);
