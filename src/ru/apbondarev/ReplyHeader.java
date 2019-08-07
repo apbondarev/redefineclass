@@ -4,13 +4,13 @@ public class ReplyHeader {
     private final int dataLength;
     private final int id;
     private final byte flags;
-    private final short errorCode;
+    private final ErrorCode errorCode;
 
     public ReplyHeader(int dataLength, int id, byte flags, short errorCode) {
         this.dataLength = dataLength;
         this.id = id;
         this.flags = flags;
-        this.errorCode = errorCode;
+        this.errorCode = ErrorCode.valueOf(errorCode);
     }
 
     public int getDataLength() {
@@ -25,7 +25,7 @@ public class ReplyHeader {
         return flags;
     }
 
-    public short getErrorCode() {
+    public ErrorCode getErrorCode() {
         return errorCode;
     }
 }

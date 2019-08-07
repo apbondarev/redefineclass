@@ -151,9 +151,13 @@ public class RedefineClass implements Closeable {
         executeCommands(findClassCommands);
         Map<String, Long> classToReferenceId = new HashMap<>();
         for (ClassesBySignatureCommand cmd : findClassCommands) {
-            long referenceTypeID = cmd.getResult().get(0).getTypeID();
-            classToReferenceId.put(cmd.getClassName(), referenceTypeID);
-            System.out.println("class: " + cmd.getClassName() + ", id: " + referenceTypeID);
+            if (cmd.getResult().isEmpty()) {
+                System.out.println("class: " + cmd.getClassName() + ", not found");
+            } else {
+                long referenceTypeID = cmd.getResult().get(0).getTypeID();
+                classToReferenceId.put(cmd.getClassName(), referenceTypeID);
+                System.out.println("class: " + cmd.getClassName() + ", id: " + referenceTypeID);
+            }
         }
 
         // RedefineClasses
@@ -161,7 +165,9 @@ public class RedefineClass implements Closeable {
         for (Map.Entry<String, byte[]> entry : classBytes.entrySet()) {
             String className = entry.getKey();
             byte[] bytes = entry.getValue();
-            classes.put(classToReferenceId.get(className), bytes);
+            if (classToReferenceId.containsKey(className)) {
+                classes.put(classToReferenceId.get(className), bytes);
+            }
         }
         List<RedefineClassesCommand> redefineClassesCommands = Collections.singletonList(new RedefineClassesCommand(idCounter, sizeInfo, classes));
         executeCommands(redefineClassesCommands);
@@ -176,8 +182,8 @@ public class RedefineClass implements Closeable {
         socketOutput.flush();
         while (!itTocommands.isEmpty()) {
             ReplyHeader reply = Command.readHeader(socketInput);
-            if (reply.getErrorCode() != 0) {
-                throw new IllegalStateException("error code " + reply.getErrorCode());
+            if (reply.getErrorCode() != ErrorCode.NONE) {
+                throw new IllegalStateException(reply.getErrorCode().toString());
             }
             if (itTocommands.containsKey(reply.getId())) {
                 Command cmd = itTocommands.get(reply.getId());
